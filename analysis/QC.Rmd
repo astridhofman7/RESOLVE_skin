@@ -1,0 +1,1067 @@
+---
+title: "QC"
+author: "astridhofman7"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+# Set-Up
+
+```{r message = FALSE, echo = FALSE, include=FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(Seurat) 
+library(hdf5r)
+library(BiocManager)
+library(limma)
+library(sctransform)
+library(edgeR)
+#library(enrichR)
+library(scDblFinder)
+#library(Azimuth)
+#library(ezRun)
+library(patchwork)
+library(cowplot)
+library(scuttle)
+library(Matrix)
+library(ggrepel)
+library(EnhancedVolcano)
+library(ggplot2)
+#library(gridExtra)
+library(tidyverse)
+library(SeuratData)
+library(RColorBrewer)
+library(Matrix)
+library(scDblFinder)
+library(workflowr)
+library(here)
+library(scCustomize)
+library(scDblFinder)
+library(harmony)
+library(clustree)
+
+
+set.seed(42)
+
+#Output paths
+current_file <- "QC"
+
+output_dir_data <- here::here("output", current_file)
+if (!dir.exists(output_dir_data)) dir.create(output_dir_data, recursive = TRUE)
+
+if (!dir.exists(here::here("docs", "figure"))) dir.create(here::here("docs", "figure"))
+
+output_dir_figs <- here::here("docs", "figure", paste0(current_file, ".Rmd"))
+if (!dir.exists(output_dir_figs)) dir.create(output_dir_figs, recursive = TRUE)
+```
+
+```{r knitr config, include=FALSE, cache=FALSE}
+
+knitr::opts_chunk$set(warning = FALSE)
+
+knitr::opts_chunk$set(message = FALSE)
+
+knitr::opts_chunk$set(cache = FALSE)
+
+knitr::opts_chunk$set(dpi = 600, fig.align = "center")
+
+```
+
+## Load the samples & set directories
+
+```{r error=TRUE, message = FALSE, include=FALSE, cache=FALSE}
+#To load the filtered feature matrices using the here package
+##Set the folders/paths to find the necessary files
+folders <- c("HC-01", "RES-001", "RES-003", "RES-004")
+files <- setNames(
+  lapply(folders, function(folder) {
+    here("data", folder,"filtered_feature_bc_matrix")
+  }),
+  folders
+)
+
+#Check that the file paths and directory exist
+print(files)
+dir_exists <- sapply(files, dir.exists)
+print(dir_exists)
+
+# Create a list with the seurat  objects
+seurat_list <- lapply(names(files), function(sample) {
+  data <- Read10X(data.dir = files[[sample]])  # Load data using Read10X
+  seurat_object <- CreateSeuratObject(counts = data, project = sample)  # Create Seurat object
+  seurat_object$sample <- sample  # Add sample identity metadata
+  return(seurat_object)
+})
+
+# Name the list by the folder names
+names(seurat_list) <- names(files)
+```
+
+
+## Inspect the quality of the data before removing doublets or filtering
+
+```{r}
+#Calculate and add the percentage of mitochondrial and ribosomal genes
+seurat_list <- lapply(seurat_list, function(seurat_object) {
+  seurat_object[["percent.mt"]] <- PercentageFeatureSet(seurat_object, pattern = "^MT-") 
+  return(seurat_object)
+})
+seurat_list <- lapply(seurat_list, function(seurat_object) {
+  seurat_object[["percent.rp"]] <- PercentageFeatureSet(seurat_object, pattern = "^RP[SL]") 
+  return(seurat_object)
+})
+
+seurat_list <- lapply(seurat_list, function(seurat_object) {
+  seurat_object[["percent.hb"]] <- PercentageFeatureSet(seurat_object, pattern = "^HB[^(P)]") 
+  return(seurat_object)
+})
+
+```
+
+```{r, fig.height=4, fig.width=12}
+
+#Visualize QC metrics for each sample in seurat list-Violin Plots
+qc_plots <- lapply(seurat_list, function(seurat_object) {
+  VlnPlot(seurat_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt","percent.rp"), ncol = 4) 
+  })
+
+# Print QC plots
+for (i in seq_along(qc_plots)) {
+  print(qc_plots[[i]])
+}
+
+```
+
+
+```{r, fig.height=4, fig.width=12}
+#Visualize QC metrics for each sample in seurat list-Scatter Plots
+scatter_plots <- lapply(seurat_list, function(seurat_object) {
+  FeatureScatter(seurat_object, feature1 = "nCount_RNA", feature2 = "percent.mt") +
+  FeatureScatter(seurat_object, feature1 = "nCount_RNA", feature2 = "nFeature_RNA") +
+  FeatureScatter(seurat_object, feature1 = "nCount_RNA", feature2 = "percent.rp") 
+})
+
+# Print scatter plots
+for (i in seq_along(scatter_plots)) {
+  print(scatter_plots[[i]])
+}
+
+```
+
+```{r, message=FALSE}
+#Merge seurat list in a seurat object
+# Find common features (genes) across all Seurat objects in the list
+common_features <- Reduce(intersect, lapply(seurat_list, rownames))
+
+# Subset each Seurat object to retain only common features
+seurat_list <- lapply(seurat_list, function(obj) {
+    obj <- subset(obj, features = common_features)
+    return(obj)
+})
+
+# Merge the Seurat objects without performing any normalization
+merged_seurat <- Reduce(function(x, y) merge(x, y, assay = "RNA"), seurat_list)
+
+merged_seurat$Sample <- merged_seurat$orig.ident
+```
+## Doublet Detection & Removal
+
+```{r, message=FALSE}
+#ScDblFinder to detect doublets
+#Convert you seurat object to a single cell experiment for ScDblFinder
+#Your Seurat is a v5 object
+#Join layers
+
+merged_new = JoinLayers(merged_seurat)
+
+#Extract raw counts 
+
+counts_data <- SeuratObject::GetAssayData(merged_new, slot = "counts")
+
+
+#Extract metadata (cell-level data)
+
+metadata <- merged_new@meta.data
+ 
+#Extract feature (gene) information if needed
+
+feature_metadata <- data.frame(row.names = rownames(counts_data))
+
+ 
+sce <- SingleCellExperiment::SingleCellExperiment(
+
+    assays = list(counts = counts_data),  # Add other slots if needed (e.g., "logcounts")
+
+    colData = metadata,                  # Add cell metadata
+
+    rowData = feature_metadata           # Add feature metadata (optional)
+
+)
+
+
+#Find Doublets
+
+sce <- scDblFinder(sce, samples="Sample", clusters = TRUE)
+table(sce@colData$scDblFinder.class)
+sce <- logNormCounts(sce)
+```
+
+### Convert back to Seurat Object
+
+```{r}
+#Convert back to a seurat object
+merged_new <- as.Seurat(sce, counts = "counts", data = "logcounts")
+rm(sce)
+merged_new@meta.data[merged_new@meta.data$scDblFinder.class %in% "singlet", "scDblFinder.n"] = paste0("Singlets (n=", table(merged_new$scDblFinder.class)[1], ")")
+merged_new@meta.data[merged_new@meta.data$scDblFinder.class %in% "doublet", "scDblFinder.n"] = paste0("Doublets (n=", table(merged_new$scDblFinder.class)[2], ")")
+merged_new$scDblFinder.n <- factor(x = merged_new$scDblFinder.n, levels = c(rownames(table(merged_new$scDblFinder.n))[2], rownames(table(merged_new$scDblFinder.n))[1])) 
+```
+
+### Plot the Detected Doublets
+
+```{r fig.width=12}
+p1 <- VlnPlot(merged_new, features = c("nCount_RNA"), split.by = "scDblFinder.n", group.by = "Sample", pt.size = 0, y.max = 150000) + theme(axis.title.x = element_blank()) + NoLegend()
+
+p2 <- VlnPlot(merged_new, features = c("nFeature_RNA"), split.by = "scDblFinder.n", group.by = "Sample", pt.size = 0, y.max = 10000) + theme(axis.title.x = element_blank()) 
+
+Doublets <- p1 + p2 + plot_layout(ncol = 2)
+Doublets
+```
+
+### Check the QC Parameters before Removing Doublets for each sample
+
+```{r}
+#Check quality control parameters before removing doublets by sample
+#Use the seurat object with joined layers
+p1 <- VlnPlot(merged_new, features = "nCount_RNA", group.by = "Sample", pt.size = 0, y.max = 40000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 <- VlnPlot(merged_new, features = "nFeature_RNA", group.by = "Sample", pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 <- VlnPlot(merged_new, features = "percent.mt", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 <- VlnPlot(merged_new, features = "percent.rp", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+before_removal <- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+before_removal
+```
+
+### Doublet Removal
+
+```{r}
+#Remove Doublets
+nodoublets <- subset(x = merged_new, subset = scDblFinder.class == "singlet")
+table(nodoublets@meta.data$scDblFinder.class)
+```
+
+```{r}
+#Check quality control parameters after removing doublets by sample
+
+p1 <- VlnPlot(nodoublets, features = "nCount_RNA", group.by = "Sample", pt.size = 0, y.max = 40000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 <- VlnPlot(nodoublets, features = "nFeature_RNA", group.by = "Sample", pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 <- VlnPlot(nodoublets, features = "percent.mt", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 <- VlnPlot(nodoublets, features = "percent.rp", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+after_removal <- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+after_removal
+```
+## Checking the Genes & Percent MT and how these correlate
+```{r}
+nodoublets@meta.data %>% 
+  ggplot(aes(x = nCount_RNA, y = nFeature_RNA, color = percent.mt)) + 
+  geom_point(alpha = 0.6) + 
+  scale_color_gradient(low = "lightgreen", high = "darkgreen") + 
+  stat_smooth(method = "lm", aes(group = Sample), color = "black") +  # Add `group = Group` to smooth
+  scale_x_log10() + 
+  scale_y_log10() + 
+  theme_classic() +
+  xlab('Number of UMIs (n_Counts)') + 
+  ylab('Number of Genes (n_Feature)') +
+  theme(axis.text.x=element_text(size=13), axis.text.y=element_text(size=15), 
+        axis.title = element_text(size = 22), 
+        plot.title = element_text(size = 24), 
+        legend.title = element_text(size = 19),
+        legend.text = element_text(size = 18)) +
+  facet_wrap(~Sample)
+```
+
+```{r}
+nodoublets@meta.data %>% 
+  ggplot(aes(x = nCount_RNA, y = nFeature_RNA, color = percent.mt)) + 
+  geom_point(alpha = 0.6) + 
+  scale_color_gradient(low = "lightblue", high = "darkblue") + 
+  stat_smooth(method = "lm", color = "black") +  # Add `group = Group` to smooth
+  scale_x_log10() + 
+  scale_y_log10() + 
+  theme_classic() +
+  xlab('Number of UMIs (n_Counts)') + 
+  ylab('Number of Genes (n_Feature)') +
+  theme(axis.text.x=element_text(size=13), axis.text.y=element_text(size=15), 
+        axis.title = element_text(size = 22), 
+        plot.title = element_text(size = 24), 
+        legend.title = element_text(size = 19),
+        legend.text = element_text(size = 18))
+```
+
+## Filtering 
+
+```{r}
+#Filtering based on number of counts, features and mitochondrial percentage
+# Split Seurat object by sample
+seurat_list <- SplitObject(nodoublets, split.by = "sample")
+quantiles_list <- list()
+
+# Define the list of sample names
+samples <- unique(nodoublets@meta.data$sample)
+
+# Split the object by "Sample"
+seurat_list <- SplitObject(nodoublets, split.by = "sample")
+
+# Initialize a list to store quantile information
+quantiles_list <- list()
+
+# Loop through each sample
+for (sample in samples) {
+  seu1 <- seurat_list[[sample]]
+  
+  # Calculate quantiles for the current sample
+  quantile_df <- data.frame(
+    percent_mt_q90 = quantile(seu1@meta.data$percent.mt, probs = 0.90),
+    percent_mt_q10 = quantile(seu1@meta.data$percent.mt, probs = 0.10),
+    nCounts_q90 = quantile(seu1@meta.data$nCount_RNA, probs = 0.90),
+    nCounts_q10 = quantile(seu1@meta.data$nCount_RNA, probs = 0.10),
+    nFeature_q90 = quantile(seu1@meta.data$nFeature_RNA, probs = 0.90),
+    nFeature_q10 = quantile(seu1@meta.data$nFeature_RNA, probs = 0.10),
+    Ncell_before_filtering = ncol(seu1)
+  )
+  
+  # Store the quantiles for the current sample
+  quantiles_list[[sample]] <- quantile_df
+}
+
+
+# Combine the quantiles list into a single data frame
+quantiles_df <- bind_rows(quantiles_list, .id = "Sample")
+
+# Gather measures into a long format for easier plotting
+quantiles_long <- quantiles_df %>%
+  pivot_longer(cols = -Sample, 
+               names_to = "Metric", 
+               values_to = "Value")
+
+# Function to plot violins for each measure
+generate_violin_plots <- function(seurat_list, measures) {
+  plots <- list()
+  for (measure in measures) {
+    # Combine meta.data from all Seurat objects into one data frame
+    all_data <- do.call(rbind, lapply(names(seurat_list), function(sample) {
+      data.frame(Sample = sample, Value = seurat_list[[sample]]@meta.data[[measure]])
+    }))
+    
+    # Generate the violin plot
+    p <- ggplot(all_data, aes(x = Sample, y = Value, fill = Sample)) +
+      geom_violin(alpha = 0.6) +
+      geom_hline(data = quantiles_long %>%
+                   filter(grepl(measure, Metric)), 
+                 aes(yintercept = Value, linetype = Metric), 
+                 color = "red") +
+      scale_linetype_manual(values = c("dashed", "solid")) +
+      labs(title = paste("Violin Plot of", measure),
+           x = "Sample", y = measure) +
+      theme_minimal()
+    
+    # Save the plot in the list
+    plots[[measure]] <- p
+  }
+  return(plots)
+}
+
+# Define the measures to plot
+measures <- c("percent.mt", "nCount_RNA", "nFeature_RNA")
+
+# Generate plots
+violin_plots <- generate_violin_plots(seurat_list, measures)
+
+# Print all plots
+for (measure in names(violin_plots)) {
+  print(violin_plots[[measure]])
+}
+
+
+```
+
+```{r}
+rm(quantile_df)
+ 
+# Initialize a list to store the filtered Seurat objects
+filtered_seu_list <- list()
+ 
+# Loop through each sample and apply the filtering criteria
+for (sample in samples) {
+ 
+  # Extract the corresponding quantiles for the sample
+  sample_quantiles <- quantiles_list[[sample]]
+  seu1 <- seurat_list[[sample]]
+  # Apply the filtering criteria
+  seu1 <- subset(seu1, subset = nFeature_RNA > sample_quantiles$nFeature_q10 &
+                              nFeature_RNA < sample_quantiles$nFeature_q90 &
+                              nFeature_RNA > 300  &
+                              percent.mt < sample_quantiles$percent_mt_q90 &
+                              percent.mt < 15 &
+                              percent.mt > 0.5 &
+                              nCount_RNA > 500 &
+                              nCount_RNA > sample_quantiles$nCounts_q10 &
+                              nCount_RNA < sample_quantiles$nCounts_q90)
+ 
+  # Add the filtered subset to the list
+  filtered_seu_list[[sample]] <- seu1
+}
+```
+
+```{r}
+#Merge filtered list to a seurat object
+filtered_seurat <- Reduce(function(x, y) merge(x, y, assay = "RNA"), filtered_seu_list)
+```
+
+```{r}
+#Check quality control parameters after filtering
+
+p1 <- VlnPlot(filtered_seurat, features = "nCount_RNA", group.by = "Sample", pt.size = 0, y.max = 15000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 <- VlnPlot(filtered_seurat, features = "nFeature_RNA", group.by = "Sample", pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 <- VlnPlot(filtered_seurat, features = "percent.mt", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 <- VlnPlot(filtered_seurat, features = "percent.rp", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+filtered_VlnPlots <- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+filtered_VlnPlots
+```
+
+```{r}
+#Print a table with filtered samples
+table(filtered_seurat$Sample)
+```
+
+```{r}
+filtered_seurat@meta.data %>% 
+  ggplot(aes(x = nCount_RNA, y = nFeature_RNA, color = percent.mt)) + 
+  geom_point(alpha = 0.6) + 
+  scale_color_gradient(low = "lightgreen", high = "darkgreen") + 
+  stat_smooth(method = "lm", color = "black") +  # Add `group = Group` to smooth
+  scale_x_log10() + 
+  scale_y_log10() + 
+  theme_classic() +
+  xlab('Number of UMIs (n_Counts)') + 
+  ylab('Number of Genes (n_Feature)') +
+  theme(axis.text.x=element_text(size=13), axis.text.y=element_text(size=15), 
+        axis.title = element_text(size = 22), 
+        plot.title = element_text(size = 24), 
+        legend.title = element_text(size = 19),
+        legend.text = element_text(size = 18))
+```
+
+```{r}
+#Filtering bad cells
+
+filtered_seurat <- subset(filtered_seurat, features = rownames(filtered_seurat)[rowSums(filtered_seurat[["originalexp"]]@counts > 0) >= 5])
+```
+
+```{r}
+#Check quality control parameters after filtering
+
+p1 <- VlnPlot(filtered_seurat, features = "nCount_RNA", group.by = "Sample", pt.size = 0, y.max = 15000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 <- VlnPlot(filtered_seurat, features = "nFeature_RNA", group.by = "Sample", pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 <- VlnPlot(filtered_seurat, features = "percent.mt", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 <- VlnPlot(filtered_seurat, features = "percent.rp", group.by = "Sample", pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+filtered_VlnPlots <- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+filtered_VlnPlots
+```
+
+```{r}
+#Print a table with filtered samples
+table(filtered_seurat$Sample)
+```
+
+## Cell Cycle Genes
+
+```{r}
+#RES-004 still looks like it has quite some cells with low nCount and nFeature, which could be indicative of low quality cells. Let's take a closer look at some factors that could affect this
+# Use built-in cell cycle markers for human
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+
+# Apply cell cycle scoring to the Seurat object
+filtered_seurat <- CellCycleScoring(filtered_seurat, 
+                               s.features = s.genes, 
+                               g2m.features = g2m.genes, 
+                               set.ident = TRUE)
+
+# Visualize the cell cycle scores
+VlnPlot(filtered_seurat, features = c("S.Score", "G2M.Score"), group.by = "Sample", pt.size= 0)
+
+#Conclusion: doesn't look like the cell cycle genes are significantly affecting the expression.
+#Continue with the normalization, etc. to see if we can check expression of dying cells
+```
+
+## Post-Filtering 
+
+### Normalization
+
+```{r}
+#Normalization
+filtered_seurat <- NormalizeData(filtered_seurat, normalization.method = "LogNormalize") 
+gene_expression <- apply(LayerData(filtered_seurat,layer="data"),1,mean)
+
+names(gene_expression) <- rownames(data)
+gene_expression <- sort(gene_expression, decreasing = TRUE) 
+head(gene_expression, n=50)
+```
+
+### Find Variable Features 
+
+```{r}
+#Find Variable Features
+FindVariableFeatures(filtered_seurat) -> filtered_seurat
+HVFInfo(filtered_seurat) %>%
+  arrange(desc(variance.standardized)) %>%
+  head(n=20)
+HVFInfo(filtered_seurat) %>%
+  arrange(desc(variance.standardized)) %>%
+  mutate(index=1:n()) %>%
+  ggplot(aes(x=index, y=variance.standardized)) +
+  geom_line() +
+  scale_x_log10() +
+  geom_vline(xintercept = 500, colour="red2")
+
+FindVariableFeatures(
+  filtered_seurat, 
+  selection.method = "vst", 
+  nfeatures=500
+) -> filtered_seurat
+filtered_seurat <- FindVariableFeatures(filtered_seurat, selection.method = "mean.var.plot", nfeatures = 2000)
+filtered_seurat <- FindVariableFeatures(filtered_seurat, selection.method = "dispersion", nfeatures = 2000)
+top_variable_features <- head(VariableFeatures(filtered_seurat), 10)
+print(top_variable_features)
+
+```
+
+### Scaling, PCA, Elbow Plot
+
+```{r}
+#Scale data
+filtered_seurat <- ScaleData(filtered_seurat, vars.to.regress = "percent.mt")
+
+#PCA
+filtered_seurat <- RunPCA(filtered_seurat, npcs = 50, verbose = FALSE)
+
+#Elbow Plot
+ElbowPlot(filtered_seurat, ndims=50)
+
+#Choose 25 PCs
+```
+
+## Clustering without integration first 
+
+```{r, message=F, echo=F, include=FALSE}
+filtered_seurat <- RunUMAP(filtered_seurat, reduction = "pca", dims = 1:25)
+filtered_seurat <- FindNeighbors(filtered_seurat, reduction = "pca", dims = 1:25)
+resolution.range <- seq(from = 0, to = 0.8, by = 0.1)
+filtered_seurat <- FindClusters(object = filtered_seurat, resolution = resolution.range)
+```
+
+
+```{r, fig.width=8, fig.height=15}
+#Clustree
+clustree(filtered_seurat)
+```
+
+### Dimplot / Resolutions
+
+```{r, fig.width=12, fig.height=15}
+DimPlot(filtered_seurat, reduction = "umap", shuffle = T,
+        group.by = c("originalexp_snn_res.0.1", "originalexp_snn_res.0.2", "originalexp_snn_res.0.3", "originalexp_snn_res.0.4"), ncol = 2)
+
+```
+
+### Dimplot / Sample
+
+```{r, fig.width=10, fig.height=6}
+
+DimPlot(filtered_seurat, reduction = "umap", shuffle = T,
+        group.by = c("sample"))
+
+#Clearly needs to be integrated 
+```
+
+### Feature plots: Mitochondrial, Ribosomal, Hemoglobin
+
+```{r, fig.width=10, fig.height=5}
+
+# hemoglobin genes (but not HBP)
+filtered_seurat <- Seurat::PercentageFeatureSet(filtered_seurat,
+                                    pattern = "^HB[^(P)]",
+                                    col.name = "percent.hb")
+FeaturePlot_scCustom(filtered_seurat, reduction = "umap", features = c("percent.mt", "percent.rp", "percent.hb"))
+
+#No red flags here
+```
+
+## Clustering with Integration
+
+### Harmony Integration
+
+```{r}
+filtered_seurat[["originalexp"]] <- split(filtered_seurat[["originalexp"]], f = filtered_seurat$sample)
+
+filtered_seurat_harmony <- IntegrateLayers(
+  object = filtered_seurat, method = HarmonyIntegration, npcs = 25,
+  orig.reduction = "pca", new.reduction = "harmony", max.inter.harmony = 10,
+  verbose = TRUE
+)
+```
+
+```{r, message=FALSE}
+filtered_seurat_harmony <- RunUMAP(filtered_seurat_harmony, reduction = "harmony", dims = 1:25, reduction.name = "umap.harm")
+filtered_seurat_harmony <- FindNeighbors(filtered_seurat_harmony, reduction = "harmony", dims = 1:25)
+resolution.range <- seq(from = 0, to = 0.8, by = 0.1)
+filtered_seurat_harmony <- FindClusters(object = filtered_seurat_harmony, resolution = resolution.range)
+clustree(filtered_seurat_harmony)
+```
+
+```{r, fig.width=18, fig.height=20}
+
+p1 <- DimPlot(
+  filtered_seurat_harmony,
+  reduction = "umap.harm",
+  group.by = c("originalexp_snn_res.0.1", "originalexp_snn_res.0.2", "originalexp_snn_res.0.3", "originalexp_snn_res.0.4", "originalexp_snn_res.0.5", "originalexp_snn_res.0.6"),
+  combine = FALSE, label.size = 2
+)
+wrap_plots(p1, ncol = 3, byrow = F)
+```
+```{r, fig.width=10, fig.height=5}
+
+DimPlot(
+  filtered_seurat_harmony,
+  reduction = "umap.harm",
+  group.by = c("sample"),
+  combine = FALSE, label.size = 2)
+
+```
+
+```{r, fig.width=15, fig.height=5}
+
+DimPlot(
+  filtered_seurat_harmony,
+  reduction = "umap.harm",
+  split.by = c("sample"),
+  combine = FALSE, label.size = 2)
+
+```
+
+## Set the resolution 
+```{r}
+#Will set at 0.6 for now and revisit later in case it doesn't make sense
+filtered_seurat_harmony$seurat_clusters <- filtered_seurat_harmony$originalexp_snn_res.0.5
+filtered_seurat_harmony <- Seurat::SetIdent(filtered_seurat_harmony, value = filtered_seurat_harmony$originalexp_snn_res.0.5)
+table(filtered_seurat_harmony$seurat_clusters)
+```
+
+```{r, fig.width= 7, fig.height= 7}
+
+DimPlot(
+  filtered_seurat_harmony,
+  reduction = "umap.harm",
+  label = T, label.size = 5, repel = T)
+
+```
+#### Rejoin Layers
+```{r}
+
+filtered_seurat_harmony <- JoinLayers(filtered_seurat_harmony)
+```
+
+## Annotation (https://www.nature.com/articles/s41467-021-24110-y/figures/1)
+
+### Markers
+```{r}
+
+Endo <- c("SELE", "PECAM1","VWF")
+Fib <- c("COL1A1", "COL1A2", "COL3A1")
+SMC <- c("TAGLN", "ACTA2", "TPM2")
+KRT <- c("KRT14", "KRT1", "KRT10", "KRT5")
+IMM <- c("LYZ", "HLA-DRA")
+LYME <- c("COL21", "LYVE1")
+NEU <- c("NRXN1")
+SGC <- c("SCGB1B2P", "SCGB1D2")
+Mela <- c("TYRP1", "PMEL")
+Tcell <- c("CCR7", "CD8A", "IL7R", "CD3E")
+```
+
+#### Endothelial Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = Endo, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Endo, reduction = "umap.harm")
+```
+
+
+```{r, fig.width=10, fig.height=10}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = Fib, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Fib, reduction = "umap.harm")
+```
+
+```{r, fig.width=10, fig.height=10}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = SMC, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = SMC, reduction = "umap.harm")
+```
+
+```{r, fig.width=7, fig.height=7}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = KRT, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = KRT, reduction = "umap.harm")
+```
+#### Immune Cells 
+
+```{r, fig.width=8, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = IMM, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = IMM, reduction = "umap.harm")
+```
+#### Lymphatic Endothelial Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = LYME, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = LYME, reduction = "umap.harm")
+```
+
+#### Neuronal Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = NEU, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = NEU, reduction = "umap.harm")
+```
+#### Sweat Gland Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = SGC, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = SGC, reduction = "umap.harm")
+```
+
+#### Melanocytes
+
+```{r, fig.width=10, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = Mela, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Mela, reduction = "umap.harm")
+```
+#### T Cells 
+
+```{r, fig.width=7, fig.height=7}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = Tcell, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Tcell, reduction = "umap.harm")
+```
+
+
+### What is cluster 17 
+
+```{r, fig.width=7, fig.height=7}
+# Create a vector of colors for all clusters
+# Use "gray" for all clusters except "17", which will be "red"
+all_clusters <- levels(Idents(filtered_seurat_harmony))
+cluster_colors <- ifelse(all_clusters == "17", "red", "gray")
+
+# Generate the UMAP plot
+DimPlot(filtered_seurat_harmony, 
+        reduction = "umap", 
+        group.by = "seurat_clusters", 
+        label = TRUE) +
+  scale_color_manual(values = setNames(cluster_colors, all_clusters)) +
+  ggtitle("Highlighting Cluster 17") +
+  theme(legend.position = "none")
+
+
+```
+
+
+```{r, fig.width=7, fig.height=7}
+
+# Assuming 'seurat_object' is your Seurat object
+# Find markers for cluster 17
+cluster_17_markers <- FindMarkers(filtered_seurat_harmony, ident.1 = "17")
+
+# Check the number of markers
+n_markers_cluster_17 <- nrow(cluster_17_markers)
+print(paste("Number of markers for cluster 17:", n_markers_cluster_17))
+
+
+```
+
+### Remove Cluster 17
+
+```{r, fig.width=7, fig.height=7}
+
+clusters_to_keep <- c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "18")
+Idents(filtered_seurat_harmony) <- filtered_seurat_harmony$originalexp_snn_res.0.5
+
+# Subset the Seurat object based on the clusters
+filtered_seurat_harmony <- subset(filtered_seurat_harmony, idents = clusters_to_keep)
+table(Idents(filtered_seurat_harmony))
+
+DimPlot(filtered_seurat_harmony, reduction = "umap.harm", label = T, label.size = 5)
+table(filtered_seurat_harmony$sample)
+```
+## Reclustering the UMAP without Cluster 17 
+
+
+```{r, message = F, echo = F}
+#Normalization
+skin_final <- NormalizeData(filtered_seurat_harmony, normalization.method = "LogNormalize") 
+gene_expression <- apply(LayerData(skin_final,layer="data"),1,mean)
+
+names(gene_expression) <- rownames(data)
+gene_expression <- sort(gene_expression, decreasing = TRUE) 
+head(gene_expression, n=50)
+```
+
+### Find Variable Features 
+
+```{r,  message = F, echo = F}
+#Find Variable Features
+FindVariableFeatures(skin_final) -> skin_final
+HVFInfo(skin_final) %>%
+  arrange(desc(variance.standardized)) %>%
+  head(n=20)
+HVFInfo(skin_final) %>%
+  arrange(desc(variance.standardized)) %>%
+  mutate(index=1:n()) %>%
+  ggplot(aes(x=index, y=variance.standardized)) +
+  geom_line() +
+  scale_x_log10() +
+  geom_vline(xintercept = 500, colour="red2")
+
+FindVariableFeatures(
+  skin_final, 
+  selection.method = "vst", 
+  nfeatures=500
+) -> skin_final
+skin_final <- FindVariableFeatures(skin_final, selection.method = "mean.var.plot", nfeatures = 2000)
+skin_final <- FindVariableFeatures(skin_final, selection.method = "dispersion", nfeatures = 2000)
+top_variable_features <- head(VariableFeatures(skin_final), 10)
+print(top_variable_features)
+
+```
+
+```{r, fig.width=7, fig.height=7, message = F}
+#Scale data
+skin_final <- ScaleData(skin_final, vars.to.regress = "percent.mt")
+
+#PCA
+skin_final <- RunPCA(skin_final, npcs = 50, verbose = FALSE)
+
+#Elbow Plot
+ElbowPlot(skin_final, ndims=50)
+
+#Choose 35 PCs
+```
+
+```{r, message = FALSE}
+
+skin_final <- FindNeighbors(skin_final, reduction = "pca", dims = 1:30)
+resolution.range <- seq(from = 0, to = 0.8, by = 0.1)
+skin_final <- FindClusters(object = skin_final, resolution = resolution.range)
+```
+
+
+```{r, fig.width=8, fig.height=15}
+#Clustree
+clustree(skin_final)
+```
+
+### Dimplot / Resolutions
+
+```{r, fig.width=12, fig.height=12}
+DimPlot(skin_final, reduction = "umap", shuffle = T,
+        group.by = c("originalexp_snn_res.0.2", "originalexp_snn_res.0.3", "originalexp_snn_res.0.4", "originalexp_snn_res.0.5"), ncol = 2)
+
+```
+
+### Dimplot / Sample
+
+```{r, fig.width=10, fig.height=6}
+
+DimPlot(skin_final, reduction = "umap", shuffle = T,
+        group.by = c("sample"))
+
+#Clearly needs to be re-integrated 
+```
+
+```{r, message=F, echo = F, include=F }
+skin_final[["originalexp"]] <- split(skin_final[["originalexp"]], f = skin_final$sample)
+
+skin_harmony <- IntegrateLayers(
+  object = skin_final, method = HarmonyIntegration, npcs = 25,
+  orig.reduction = "pca", new.reduction = "harmony", max.inter.harmony = 10,
+  verbose = TRUE
+)
+```
+
+```{r, message=FALSE, echo = F}
+
+#PCA
+skin_final <- RunPCA(skin_final, npcs = 50, verbose = FALSE)
+
+#Elbow Plot
+ElbowPlot(skin_final, ndims=50)
+skin_harmony <- FindNeighbors(skin_harmony, reduction = "harmony", dims = 1:30)
+resolution.range <- seq(from = 0, to = 0.8, by = 0.1)
+skin_harmony <- FindClusters(object = skin_harmony, resolution = resolution.range)
+clustree(skin_harmony)
+```
+
+```{r, message=FALSE}
+skin_harmony <- RunUMAP(skin_harmony, reduction = "harmony", dims = 1:30, reduction.name = "umap.harm")
+#Rejoin layers
+skin_harmony <- JoinLayers(skin_harmony)
+```
+#### Look at the resolution, UMAP per sample & feature plots
+
+```{r, message=FALSE, fig.height=10, fig.width= 10}
+DimPlot(skin_harmony, group.by = c("originalexp_snn_res.0.3", "originalexp_snn_res.0.4", "originalexp_snn_res.0.5", "originalexp_snn_res.0.6"), reduction = "umap.harm")
+```
+
+```{r, message=FALSE, fig.height=5, fig.width= 15}
+DimPlot(skin_harmony, split.by = "sample", reduction = "umap.harm")
+```
+
+
+```{r, fig.width=10, fig.height=5}
+
+FeaturePlot_scCustom(skin_harmony, reduction = "umap.harm", features = c("percent.mt", "percent.rp", "percent.hb"))
+
+```
+
+### Set Resolution
+
+```{r, fig.width=7, fig.height=7}
+
+DimPlot(skin_harmony, reduction = "umap.harm", label = T)
+
+```
+
+```{r}
+#Will set at 0.4 for now and revisit later in case it doesn't make sense
+skin_harmony$seurat_clusters <- skin_harmony$originalexp_snn_res.0.4
+skin_harmony <- Seurat::SetIdent(skin_harmony, value = skin_harmony$originalexp_snn_res.0.4)
+table(skin_harmony$seurat_clusters)
+```
+
+
+
+## Re-Annotation (https://www.nature.com/articles/s41467-021-24110-y/figures/1)
+
+### Markers
+```{r}
+
+Endo <- c("SELE", "PECAM1","VWF")
+Fib <- c("COL1A1", "COL1A2", "COL3A1")
+SMC <- c("TAGLN", "ACTA2", "TPM2")
+KRT <- c("KRT14", "KRT1", "KRT10", "KRT5")
+IMM <- c("LYZ", "HLA-DRA")
+LYME <- c("COL21", "LYVE1")
+NEU <- c("NRXN1")
+SGC <- c("SCGB1B2P", "SCGB1D2")
+Mela <- c("TYRP1", "PMEL")
+Tcell <- c("CCR7", "CD8A", "IL7R", "CD3E")
+```
+
+#### Endothelial Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(filtered_seurat_harmony, features = Endo, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Endo, reduction = "umap.harm")
+```
+
+
+```{r, fig.width=10, fig.height=10}
+#VlnPlot_scCustom(skin_harmony, features = Fib, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Fib, reduction = "umap.harm")
+```
+
+```{r, fig.width=10, fig.height=10}
+#VlnPlot_scCustom(skin_harmony, features = SMC, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = SMC, reduction = "umap.harm")
+
+```
+
+```{r, fig.width=7, fig.height=7}
+#VlnPlot_scCustom(skin_harmony, features = KRT, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = KRT, reduction = "umap.harm")
+```
+#### Immune Cells 
+
+```{r, fig.width=8, fig.height=5}
+#VlnPlot_scCustom(skin_harmony, features = IMM, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = IMM, reduction = "umap.harm")
+```
+#### Lymphatic Endothelial Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(skin_harmony, features = LYME, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = LYME, reduction = "umap.harm")
+```
+
+#### Neuronal Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(skin_harmony, features = NEU, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = NEU, reduction = "umap.harm")
+```
+#### Sweat Gland Cells 
+
+```{r, fig.width=5, fig.height=5}
+#VlnPlot_scCustom(skin_harmony, features = SGC, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = SGC, reduction = "umap.harm")
+```
+
+#### Melanocytes
+
+```{r, fig.width=10, fig.height=5}
+#VlnPlot_scCustom(skin_harmony, features = Mela, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Mela, reduction = "umap.harm")
+```
+#### T Cells 
+
+```{r, fig.width=7, fig.height=7}
+#VlnPlot_scCustom(skin_harmony, features = Tcell, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Tcell, reduction = "umap.harm")
+```
+
+```{r, fig.width=7, fig.height=7}
+#VlnPlot_scCustom(skin_harmony, features = Tcell, pt.size = 0)
+cluster4_markers <- FindMarkers(skin_harmony, ident.1 = "14")
+head(cluster4_markers)
+```
+
+
+
+### Annotating the final UMAP 
+
+```{r}
+
+#new.cluster.ids <- c("T-Cells", "Fibroblasts", "Endothelial Cells", "Smooth Muscle Cells", "Immune Cells", "Endothelial Cells",
+#                     "Smooth Muscle Cells","Fibroblasts", "Keratinocytes", "Fibroblasts", "T-Cells", "Sweat Gland Cells", "Lymphatic Endothelial #Cells",
+#                     "Neuronal Cells","Fibroblasts", "Smooth Muscle Cells", "Melanocytes")
+
+#length(new.cluster.ids)
+#length(levels(skin_harmony$seurat_clusters))
+```
+
+```{r}
+#names(new.cluster.ids) <- levels(skin_harmony$seurat_clusters)
+#skin_harmony <- RenameIdents(skin_harmony, new.cluster.ids)
+
+DimPlot(skin_harmony, reduction = "umap.harm", label = TRUE, pt.size = 0.2, repel = T, label.size = 4)
+
+
+```
+```{r}
+
+skin_final <- saveRDS(skin_harmony, 
+              here::here(output_dir_data, "skin_final.RDS"))
+
+```
