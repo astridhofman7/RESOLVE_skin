@@ -1,14 +1,23 @@
-name: "RESOLVE_skin"
+name: RESOLVE_skin
 output_dir: ../docs
 navbar:
-  title: "RESOLVE_skin"
+  title: RESOLVE_skin
   left:
   - text: Home
     href: index.html
+  - text: Analysis
+    icon: fa-navicon
+    menu:
+    - text: Quality Control
+      href: QC.html
   - text: About
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fab fa-github
+    text: Source code
+    href: https://github.com/astridhofman7/RESOLVE_skin
 output:
   workflowr::wflow_html:
     toc: yes
