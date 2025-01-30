@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="astridhofman7" />
+
+
+<title>QC</title>
+
+<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">RESOLVE_skin</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-navicon"></span>
+     
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="QC.html">Quality Control</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">QC</h1>
+<h4 class="author">astridhofman7</h4>
+<h4 class="date">30 January, 2025</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2025-01-30
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>RESOLVE_skin/</code> <span
+class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20250127code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20250127)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20250127code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20250127)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongfc4ddf6">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong> fc4ddf6
+</a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongfc4ddf6"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version fc4ddf6.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    analysis/figure/
+
+Untracked files:
+    Untracked:  data/HC-01/
+    Untracked:  data/RES-001/
+    Untracked:  data/RES-003/
+    Untracked:  data/RES-004/
+    Untracked:  output/QC/
+
+Unstaged changes:
+    Modified:   analysis/_site.yml
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/QC.Rmd</code>) and HTML
+(<code>docs/QC.html</code>) files. If you’ve configured a remote Git
+repository (see <code>?wflow_git_remote</code>), click on the hyperlinks
+in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+fc4ddf6
+</td>
+<td>
+astridhofman7
+</td>
+<td>
+2025-01-30
+</td>
+<td>
+wflow_publish("analysis/QC.Rmd")
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="set-up" class="section level1">
+<h1>Set-Up</h1>
+<div id="load-the-samples-set-directories" class="section level2">
+<h2>Load the samples &amp; set directories</h2>
+</div>
+<div
+id="inspect-the-quality-of-the-data-before-removing-doublets-or-filtering"
+class="section level2">
+<h2>Inspect the quality of the data before removing doublets or
+filtering</h2>
+<pre class="r"><code>#Calculate and add the percentage of mitochondrial and ribosomal genes
+seurat_list &lt;- lapply(seurat_list, function(seurat_object) {
+  seurat_object[[&quot;percent.mt&quot;]] &lt;- PercentageFeatureSet(seurat_object, pattern = &quot;^MT-&quot;) 
+  return(seurat_object)
+})
+seurat_list &lt;- lapply(seurat_list, function(seurat_object) {
+  seurat_object[[&quot;percent.rp&quot;]] &lt;- PercentageFeatureSet(seurat_object, pattern = &quot;^RP[SL]&quot;) 
+  return(seurat_object)
+})
+
+seurat_list &lt;- lapply(seurat_list, function(seurat_object) {
+  seurat_object[[&quot;percent.hb&quot;]] &lt;- PercentageFeatureSet(seurat_object, pattern = &quot;^HB[^(P)]&quot;) 
+  return(seurat_object)
+})</code></pre>
+<pre class="r"><code>#Visualize QC metrics for each sample in seurat list-Violin Plots
+qc_plots &lt;- lapply(seurat_list, function(seurat_object) {
+  VlnPlot(seurat_object, features = c(&quot;nFeature_RNA&quot;, &quot;nCount_RNA&quot;, &quot;percent.mt&quot;,&quot;percent.rp&quot;), ncol = 4) 
+  })
+
+# Print QC plots
+for (i in seq_along(qc_plots)) {
+  print(qc_plots[[i]])
+}</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-4-1.png" width="7200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-4-2.png" width="7200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-4-3.png" width="7200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-4-4.png" width="7200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Visualize QC metrics for each sample in seurat list-Scatter Plots
+scatter_plots &lt;- lapply(seurat_list, function(seurat_object) {
+  FeatureScatter(seurat_object, feature1 = &quot;nCount_RNA&quot;, feature2 = &quot;percent.mt&quot;) +
+  FeatureScatter(seurat_object, feature1 = &quot;nCount_RNA&quot;, feature2 = &quot;nFeature_RNA&quot;) +
+  FeatureScatter(seurat_object, feature1 = &quot;nCount_RNA&quot;, feature2 = &quot;percent.rp&quot;) 
+})
+
+# Print scatter plots
+for (i in seq_along(scatter_plots)) {
+  print(scatter_plots[[i]])
+}</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-5-1.png" width="7200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-5-2.png" width="7200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-5-3.png" width="7200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-5-4.png" width="7200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Merge seurat list in a seurat object
+# Find common features (genes) across all Seurat objects in the list
+common_features &lt;- Reduce(intersect, lapply(seurat_list, rownames))
+
+# Subset each Seurat object to retain only common features
+seurat_list &lt;- lapply(seurat_list, function(obj) {
+    obj &lt;- subset(obj, features = common_features)
+    return(obj)
+})
+
+# Merge the Seurat objects without performing any normalization
+merged_seurat &lt;- Reduce(function(x, y) merge(x, y, assay = &quot;RNA&quot;), seurat_list)
+
+merged_seurat$Sample &lt;- merged_seurat$orig.ident</code></pre>
+</div>
+<div id="doublet-detection-removal" class="section level2">
+<h2>Doublet Detection &amp; Removal</h2>
+<pre class="r"><code>#ScDblFinder to detect doublets
+#Convert you seurat object to a single cell experiment for ScDblFinder
+#Your Seurat is a v5 object
+#Join layers
+
+merged_new = JoinLayers(merged_seurat)
+
+#Extract raw counts 
+
+counts_data &lt;- SeuratObject::GetAssayData(merged_new, slot = &quot;counts&quot;)
+
+
+#Extract metadata (cell-level data)
+
+metadata &lt;- merged_new@meta.data
+ 
+#Extract feature (gene) information if needed
+
+feature_metadata &lt;- data.frame(row.names = rownames(counts_data))
+
+ 
+sce &lt;- SingleCellExperiment::SingleCellExperiment(
+
+    assays = list(counts = counts_data),  # Add other slots if needed (e.g., &quot;logcounts&quot;)
+
+    colData = metadata,                  # Add cell metadata
+
+    rowData = feature_metadata           # Add feature metadata (optional)
+
+)
+
+
+#Find Doublets
+
+sce &lt;- scDblFinder(sce, samples=&quot;Sample&quot;, clusters = TRUE)
+table(sce@colData$scDblFinder.class)</code></pre>
+<pre><code>
+singlet doublet 
+  29237    4238 </code></pre>
+<pre class="r"><code>sce &lt;- logNormCounts(sce)</code></pre>
+<div id="convert-back-to-seurat-object" class="section level3">
+<h3>Convert back to Seurat Object</h3>
+<pre class="r"><code>#Convert back to a seurat object
+merged_new &lt;- as.Seurat(sce, counts = &quot;counts&quot;, data = &quot;logcounts&quot;)
+rm(sce)
+merged_new@meta.data[merged_new@meta.data$scDblFinder.class %in% &quot;singlet&quot;, &quot;scDblFinder.n&quot;] = paste0(&quot;Singlets (n=&quot;, table(merged_new$scDblFinder.class)[1], &quot;)&quot;)
+merged_new@meta.data[merged_new@meta.data$scDblFinder.class %in% &quot;doublet&quot;, &quot;scDblFinder.n&quot;] = paste0(&quot;Doublets (n=&quot;, table(merged_new$scDblFinder.class)[2], &quot;)&quot;)
+merged_new$scDblFinder.n &lt;- factor(x = merged_new$scDblFinder.n, levels = c(rownames(table(merged_new$scDblFinder.n))[2], rownames(table(merged_new$scDblFinder.n))[1])) </code></pre>
+</div>
+<div id="plot-the-detected-doublets" class="section level3">
+<h3>Plot the Detected Doublets</h3>
+<pre class="r"><code>p1 &lt;- VlnPlot(merged_new, features = c(&quot;nCount_RNA&quot;), split.by = &quot;scDblFinder.n&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 150000) + theme(axis.title.x = element_blank()) + NoLegend()
+
+p2 &lt;- VlnPlot(merged_new, features = c(&quot;nFeature_RNA&quot;), split.by = &quot;scDblFinder.n&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 10000) + theme(axis.title.x = element_blank()) 
+
+Doublets &lt;- p1 + p2 + plot_layout(ncol = 2)
+Doublets</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-9-1.png" width="7200" style="display: block; margin: auto;" /></p>
+</div>
+<div
+id="check-the-qc-parameters-before-removing-doublets-for-each-sample"
+class="section level3">
+<h3>Check the QC Parameters before Removing Doublets for each
+sample</h3>
+<pre class="r"><code>#Check quality control parameters before removing doublets by sample
+#Use the seurat object with joined layers
+p1 &lt;- VlnPlot(merged_new, features = &quot;nCount_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 40000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 &lt;- VlnPlot(merged_new, features = &quot;nFeature_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 &lt;- VlnPlot(merged_new, features = &quot;percent.mt&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 &lt;- VlnPlot(merged_new, features = &quot;percent.rp&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+before_removal &lt;- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+before_removal</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-10-1.png" width="4200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="doublet-removal" class="section level3">
+<h3>Doublet Removal</h3>
+<pre class="r"><code>#Remove Doublets
+nodoublets &lt;- subset(x = merged_new, subset = scDblFinder.class == &quot;singlet&quot;)
+table(nodoublets@meta.data$scDblFinder.class)</code></pre>
+<pre><code>
+singlet doublet 
+  29237       0 </code></pre>
+<pre class="r"><code>#Check quality control parameters after removing doublets by sample
+
+p1 &lt;- VlnPlot(nodoublets, features = &quot;nCount_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 40000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 &lt;- VlnPlot(nodoublets, features = &quot;nFeature_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 &lt;- VlnPlot(nodoublets, features = &quot;percent.mt&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 &lt;- VlnPlot(nodoublets, features = &quot;percent.rp&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+after_removal &lt;- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+after_removal</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-12-1.png" width="4200" style="display: block; margin: auto;" />
+## Checking the Genes &amp; Percent MT and how these correlate</p>
+<pre class="r"><code>nodoublets@meta.data %&gt;% 
+  ggplot(aes(x = nCount_RNA, y = nFeature_RNA, color = percent.mt)) + 
+  geom_point(alpha = 0.6) + 
+  scale_color_gradient(low = &quot;lightgreen&quot;, high = &quot;darkgreen&quot;) + 
+  stat_smooth(method = &quot;lm&quot;, aes(group = Sample), color = &quot;black&quot;) +  # Add `group = Group` to smooth
+  scale_x_log10() + 
+  scale_y_log10() + 
+  theme_classic() +
+  xlab(&#39;Number of UMIs (n_Counts)&#39;) + 
+  ylab(&#39;Number of Genes (n_Feature)&#39;) +
+  theme(axis.text.x=element_text(size=13), axis.text.y=element_text(size=15), 
+        axis.title = element_text(size = 22), 
+        plot.title = element_text(size = 24), 
+        legend.title = element_text(size = 19),
+        legend.text = element_text(size = 18)) +
+  facet_wrap(~Sample)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-13-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>nodoublets@meta.data %&gt;% 
+  ggplot(aes(x = nCount_RNA, y = nFeature_RNA, color = percent.mt)) + 
+  geom_point(alpha = 0.6) + 
+  scale_color_gradient(low = &quot;lightblue&quot;, high = &quot;darkblue&quot;) + 
+  stat_smooth(method = &quot;lm&quot;, color = &quot;black&quot;) +  # Add `group = Group` to smooth
+  scale_x_log10() + 
+  scale_y_log10() + 
+  theme_classic() +
+  xlab(&#39;Number of UMIs (n_Counts)&#39;) + 
+  ylab(&#39;Number of Genes (n_Feature)&#39;) +
+  theme(axis.text.x=element_text(size=13), axis.text.y=element_text(size=15), 
+        axis.title = element_text(size = 22), 
+        plot.title = element_text(size = 24), 
+        legend.title = element_text(size = 19),
+        legend.text = element_text(size = 18))</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-14-1.png" width="4200" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="filtering" class="section level2">
+<h2>Filtering</h2>
+<pre class="r"><code>#Filtering based on number of counts, features and mitochondrial percentage
+# Split Seurat object by sample
+seurat_list &lt;- SplitObject(nodoublets, split.by = &quot;sample&quot;)
+quantiles_list &lt;- list()
+
+# Define the list of sample names
+samples &lt;- unique(nodoublets@meta.data$sample)
+
+# Split the object by &quot;Sample&quot;
+seurat_list &lt;- SplitObject(nodoublets, split.by = &quot;sample&quot;)
+
+# Initialize a list to store quantile information
+quantiles_list &lt;- list()
+
+# Loop through each sample
+for (sample in samples) {
+  seu1 &lt;- seurat_list[[sample]]
+  
+  # Calculate quantiles for the current sample
+  quantile_df &lt;- data.frame(
+    percent_mt_q90 = quantile(seu1@meta.data$percent.mt, probs = 0.90),
+    percent_mt_q10 = quantile(seu1@meta.data$percent.mt, probs = 0.10),
+    nCounts_q90 = quantile(seu1@meta.data$nCount_RNA, probs = 0.90),
+    nCounts_q10 = quantile(seu1@meta.data$nCount_RNA, probs = 0.10),
+    nFeature_q90 = quantile(seu1@meta.data$nFeature_RNA, probs = 0.90),
+    nFeature_q10 = quantile(seu1@meta.data$nFeature_RNA, probs = 0.10),
+    Ncell_before_filtering = ncol(seu1)
+  )
+  
+  # Store the quantiles for the current sample
+  quantiles_list[[sample]] &lt;- quantile_df
+}
+
+
+# Combine the quantiles list into a single data frame
+quantiles_df &lt;- bind_rows(quantiles_list, .id = &quot;Sample&quot;)
+
+# Gather measures into a long format for easier plotting
+quantiles_long &lt;- quantiles_df %&gt;%
+  pivot_longer(cols = -Sample, 
+               names_to = &quot;Metric&quot;, 
+               values_to = &quot;Value&quot;)
+
+# Function to plot violins for each measure
+generate_violin_plots &lt;- function(seurat_list, measures) {
+  plots &lt;- list()
+  for (measure in measures) {
+    # Combine meta.data from all Seurat objects into one data frame
+    all_data &lt;- do.call(rbind, lapply(names(seurat_list), function(sample) {
+      data.frame(Sample = sample, Value = seurat_list[[sample]]@meta.data[[measure]])
+    }))
+    
+    # Generate the violin plot
+    p &lt;- ggplot(all_data, aes(x = Sample, y = Value, fill = Sample)) +
+      geom_violin(alpha = 0.6) +
+      geom_hline(data = quantiles_long %&gt;%
+                   filter(grepl(measure, Metric)), 
+                 aes(yintercept = Value, linetype = Metric), 
+                 color = &quot;red&quot;) +
+      scale_linetype_manual(values = c(&quot;dashed&quot;, &quot;solid&quot;)) +
+      labs(title = paste(&quot;Violin Plot of&quot;, measure),
+           x = &quot;Sample&quot;, y = measure) +
+      theme_minimal()
+    
+    # Save the plot in the list
+    plots[[measure]] &lt;- p
+  }
+  return(plots)
+}
+
+# Define the measures to plot
+measures &lt;- c(&quot;percent.mt&quot;, &quot;nCount_RNA&quot;, &quot;nFeature_RNA&quot;)
+
+# Generate plots
+violin_plots &lt;- generate_violin_plots(seurat_list, measures)
+
+# Print all plots
+for (measure in names(violin_plots)) {
+  print(violin_plots[[measure]])
+}</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-15-1.png" width="4200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-15-2.png" width="4200" style="display: block; margin: auto;" /><img src="figure/QC.Rmd/unnamed-chunk-15-3.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>rm(quantile_df)
+ 
+# Initialize a list to store the filtered Seurat objects
+filtered_seu_list &lt;- list()
+ 
+# Loop through each sample and apply the filtering criteria
+for (sample in samples) {
+ 
+  # Extract the corresponding quantiles for the sample
+  sample_quantiles &lt;- quantiles_list[[sample]]
+  seu1 &lt;- seurat_list[[sample]]
+  # Apply the filtering criteria
+  seu1 &lt;- subset(seu1, subset = nFeature_RNA &gt; sample_quantiles$nFeature_q10 &amp;
+                              nFeature_RNA &lt; sample_quantiles$nFeature_q90 &amp;
+                              nFeature_RNA &gt; 300  &amp;
+                              percent.mt &lt; sample_quantiles$percent_mt_q90 &amp;
+                              percent.mt &lt; 15 &amp;
+                              percent.mt &gt; 0.5 &amp;
+                              nCount_RNA &gt; 500 &amp;
+                              nCount_RNA &gt; sample_quantiles$nCounts_q10 &amp;
+                              nCount_RNA &lt; sample_quantiles$nCounts_q90)
+ 
+  # Add the filtered subset to the list
+  filtered_seu_list[[sample]] &lt;- seu1
+}</code></pre>
+<pre class="r"><code>#Merge filtered list to a seurat object
+filtered_seurat &lt;- Reduce(function(x, y) merge(x, y, assay = &quot;RNA&quot;), filtered_seu_list)</code></pre>
+<pre class="r"><code>#Check quality control parameters after filtering
+
+p1 &lt;- VlnPlot(filtered_seurat, features = &quot;nCount_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 15000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 &lt;- VlnPlot(filtered_seurat, features = &quot;nFeature_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 &lt;- VlnPlot(filtered_seurat, features = &quot;percent.mt&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 &lt;- VlnPlot(filtered_seurat, features = &quot;percent.rp&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+filtered_VlnPlots &lt;- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+filtered_VlnPlots</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-18-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Print a table with filtered samples
+table(filtered_seurat$Sample)</code></pre>
+<pre><code>
+  HC-01 RES-001 RES-003 RES-004 
+   3914    1392    3223   10051 </code></pre>
+<pre class="r"><code>filtered_seurat@meta.data %&gt;% 
+  ggplot(aes(x = nCount_RNA, y = nFeature_RNA, color = percent.mt)) + 
+  geom_point(alpha = 0.6) + 
+  scale_color_gradient(low = &quot;lightgreen&quot;, high = &quot;darkgreen&quot;) + 
+  stat_smooth(method = &quot;lm&quot;, color = &quot;black&quot;) +  # Add `group = Group` to smooth
+  scale_x_log10() + 
+  scale_y_log10() + 
+  theme_classic() +
+  xlab(&#39;Number of UMIs (n_Counts)&#39;) + 
+  ylab(&#39;Number of Genes (n_Feature)&#39;) +
+  theme(axis.text.x=element_text(size=13), axis.text.y=element_text(size=15), 
+        axis.title = element_text(size = 22), 
+        plot.title = element_text(size = 24), 
+        legend.title = element_text(size = 19),
+        legend.text = element_text(size = 18))</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-20-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Filtering bad cells
+
+filtered_seurat &lt;- subset(filtered_seurat, features = rownames(filtered_seurat)[rowSums(filtered_seurat[[&quot;originalexp&quot;]]@counts &gt; 0) &gt;= 5])</code></pre>
+<pre class="r"><code>#Check quality control parameters after filtering
+
+p1 &lt;- VlnPlot(filtered_seurat, features = &quot;nCount_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 15000) + theme(axis.title.x = element_blank()) + NoLegend()
+p2 &lt;- VlnPlot(filtered_seurat, features = &quot;nFeature_RNA&quot;, group.by = &quot;Sample&quot;, pt.size = 0, y.max = 6000) + theme(axis.title.x = element_blank()) + NoLegend()
+p3 &lt;- VlnPlot(filtered_seurat, features = &quot;percent.mt&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+p4 &lt;- VlnPlot(filtered_seurat, features = &quot;percent.rp&quot;, group.by = &quot;Sample&quot;, pt.size = 0) + theme(axis.title.x = element_blank()) + NoLegend()
+
+filtered_VlnPlots &lt;- p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+filtered_VlnPlots</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-22-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Print a table with filtered samples
+table(filtered_seurat$Sample)</code></pre>
+<pre><code>
+  HC-01 RES-001 RES-003 RES-004 
+   3914    1392    3223   10051 </code></pre>
+</div>
+<div id="cell-cycle-genes" class="section level2">
+<h2>Cell Cycle Genes</h2>
+<pre class="r"><code>#RES-004 still looks like it has quite some cells with low nCount and nFeature, which could be indicative of low quality cells. Let&#39;s take a closer look at some factors that could affect this
+# Use built-in cell cycle markers for human
+s.genes &lt;- cc.genes$s.genes
+g2m.genes &lt;- cc.genes$g2m.genes
+
+# Apply cell cycle scoring to the Seurat object
+filtered_seurat &lt;- CellCycleScoring(filtered_seurat, 
+                               s.features = s.genes, 
+                               g2m.features = g2m.genes, 
+                               set.ident = TRUE)
+
+# Visualize the cell cycle scores
+VlnPlot(filtered_seurat, features = c(&quot;S.Score&quot;, &quot;G2M.Score&quot;), group.by = &quot;Sample&quot;, pt.size= 0)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-24-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Conclusion: doesn&#39;t look like the cell cycle genes are significantly affecting the expression.
+#Continue with the normalization, etc. to see if we can check expression of dying cells</code></pre>
+</div>
+<div id="post-filtering" class="section level2">
+<h2>Post-Filtering</h2>
+<div id="normalization" class="section level3">
+<h3>Normalization</h3>
+<pre class="r"><code>#Normalization
+filtered_seurat &lt;- NormalizeData(filtered_seurat, normalization.method = &quot;LogNormalize&quot;) 
+gene_expression &lt;- apply(LayerData(filtered_seurat,layer=&quot;data&quot;),1,mean)
+
+names(gene_expression) &lt;- rownames(data)
+gene_expression &lt;- sort(gene_expression, decreasing = TRUE) 
+head(gene_expression, n=50)</code></pre>
+<pre><code> [1] 5.769343 4.110311 4.038826 3.999884 3.892192 3.716666 3.617673 3.552378
+ [9] 3.522796 3.468688 3.459626 3.401461 3.379276 3.335826 3.309883 3.104099
+[17] 3.097061 3.091467 3.064216 3.056501 3.039787 3.002487 2.944915 2.906981
+[25] 2.895787 2.890804 2.858172 2.850120 2.804916 2.764632 2.761121 2.736172
+[33] 2.717690 2.702373 2.699869 2.642836 2.602667 2.600368 2.588715 2.587696
+[41] 2.570048 2.559027 2.533885 2.533147 2.471823 2.449344 2.441527 2.434462
+[49] 2.428582 2.422556</code></pre>
+</div>
+<div id="find-variable-features" class="section level3">
+<h3>Find Variable Features</h3>
+<pre class="r"><code>#Find Variable Features
+FindVariableFeatures(filtered_seurat) -&gt; filtered_seurat
+HVFInfo(filtered_seurat) %&gt;%
+  arrange(desc(variance.standardized)) %&gt;%
+  head(n=20)</code></pre>
+<pre><code>              mean    variance variance.standardized
+KRT10   2.12954790  622.109111              38.64670
+KRT1    0.92798708  146.060802              37.00654
+CCL21   0.78223897  110.553902              32.24042
+DMKN    0.62825619   57.683802              29.06165
+SCGB2A2 2.03616792  765.773814              29.03656
+KRTDAP  0.38153929   35.862117              27.97676
+DCT     0.37147470   38.651923              27.19323
+MUCL1   1.65000000  821.229396              26.17906
+KRT17   0.39881593   34.961880              23.50979
+DCD     3.22217438 6888.518481              22.54568
+NRXN1   0.43950484   25.788955              21.40014
+MPZ     0.09628633    4.438061              18.23330
+IGLC2   0.30269107  137.915263              17.79042
+COCH    2.10726588  265.227903              17.78267
+PIP     0.12707212   12.684051              17.77788
+KRT15   0.60263724   34.055292              17.45437
+IL1B    1.03250807   74.562913              17.23448
+DES     0.22029064    7.404992              16.51925
+KRT14   1.00333692   67.472081              16.38602
+S100A2  0.35010764   21.651733              16.13788</code></pre>
+<pre class="r"><code>HVFInfo(filtered_seurat) %&gt;%
+  arrange(desc(variance.standardized)) %&gt;%
+  mutate(index=1:n()) %&gt;%
+  ggplot(aes(x=index, y=variance.standardized)) +
+  geom_line() +
+  scale_x_log10() +
+  geom_vline(xintercept = 500, colour=&quot;red2&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-26-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>FindVariableFeatures(
+  filtered_seurat, 
+  selection.method = &quot;vst&quot;, 
+  nfeatures=500
+) -&gt; filtered_seurat
+filtered_seurat &lt;- FindVariableFeatures(filtered_seurat, selection.method = &quot;mean.var.plot&quot;, nfeatures = 2000)
+filtered_seurat &lt;- FindVariableFeatures(filtered_seurat, selection.method = &quot;dispersion&quot;, nfeatures = 2000)
+top_variable_features &lt;- head(VariableFeatures(filtered_seurat), 10)
+print(top_variable_features)</code></pre>
+<pre><code> [1] &quot;IGLC2&quot;   &quot;DCD&quot;     &quot;IGKC&quot;    &quot;HBB&quot;     &quot;IGHA1&quot;   &quot;MUCL1&quot;   &quot;SCGB2A2&quot;
+ [8] &quot;JCHAIN&quot;  &quot;APOD&quot;    &quot;KRT10&quot;  </code></pre>
+</div>
+<div id="scaling-pca-elbow-plot" class="section level3">
+<h3>Scaling, PCA, Elbow Plot</h3>
+<pre class="r"><code>#Scale data
+filtered_seurat &lt;- ScaleData(filtered_seurat, vars.to.regress = &quot;percent.mt&quot;)
+
+#PCA
+filtered_seurat &lt;- RunPCA(filtered_seurat, npcs = 50, verbose = FALSE)
+
+#Elbow Plot
+ElbowPlot(filtered_seurat, ndims=50)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-27-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Choose 25 PCs</code></pre>
+</div>
+</div>
+<div id="clustering-without-integration-first" class="section level2">
+<h2>Clustering without integration first</h2>
+<pre class="r"><code>#Clustree
+clustree(filtered_seurat)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-29-1.png" width="4800" style="display: block; margin: auto;" /></p>
+<div id="dimplot-resolutions" class="section level3">
+<h3>Dimplot / Resolutions</h3>
+<pre class="r"><code>DimPlot(filtered_seurat, reduction = &quot;umap&quot;, shuffle = T,
+        group.by = c(&quot;originalexp_snn_res.0.1&quot;, &quot;originalexp_snn_res.0.2&quot;, &quot;originalexp_snn_res.0.3&quot;, &quot;originalexp_snn_res.0.4&quot;), ncol = 2)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-30-1.png" width="7200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="dimplot-sample" class="section level3">
+<h3>Dimplot / Sample</h3>
+<pre class="r"><code>DimPlot(filtered_seurat, reduction = &quot;umap&quot;, shuffle = T,
+        group.by = c(&quot;sample&quot;))</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-31-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Clearly needs to be integrated </code></pre>
+</div>
+<div id="feature-plots-mitochondrial-ribosomal-hemoglobin"
+class="section level3">
+<h3>Feature plots: Mitochondrial, Ribosomal, Hemoglobin</h3>
+<pre class="r"><code># hemoglobin genes (but not HBP)
+filtered_seurat &lt;- Seurat::PercentageFeatureSet(filtered_seurat,
+                                    pattern = &quot;^HB[^(P)]&quot;,
+                                    col.name = &quot;percent.hb&quot;)
+FeaturePlot_scCustom(filtered_seurat, reduction = &quot;umap&quot;, features = c(&quot;percent.mt&quot;, &quot;percent.rp&quot;, &quot;percent.hb&quot;))</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-32-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#No red flags here</code></pre>
+</div>
+</div>
+<div id="clustering-with-integration" class="section level2">
+<h2>Clustering with Integration</h2>
+<div id="harmony-integration" class="section level3">
+<h3>Harmony Integration</h3>
+<pre class="r"><code>filtered_seurat[[&quot;originalexp&quot;]] &lt;- split(filtered_seurat[[&quot;originalexp&quot;]], f = filtered_seurat$sample)
+
+filtered_seurat_harmony &lt;- IntegrateLayers(
+  object = filtered_seurat, method = HarmonyIntegration, npcs = 25,
+  orig.reduction = &quot;pca&quot;, new.reduction = &quot;harmony&quot;, max.inter.harmony = 10,
+  verbose = TRUE
+)</code></pre>
+<pre class="r"><code>filtered_seurat_harmony &lt;- RunUMAP(filtered_seurat_harmony, reduction = &quot;harmony&quot;, dims = 1:25, reduction.name = &quot;umap.harm&quot;)
+filtered_seurat_harmony &lt;- FindNeighbors(filtered_seurat_harmony, reduction = &quot;harmony&quot;, dims = 1:25)
+resolution.range &lt;- seq(from = 0, to = 0.8, by = 0.1)
+filtered_seurat_harmony &lt;- FindClusters(object = filtered_seurat_harmony, resolution = resolution.range)</code></pre>
+<pre><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 1.0000
+Number of communities: 1
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9822
+Number of communities: 12
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9686
+Number of communities: 15
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9578
+Number of communities: 16
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9483
+Number of communities: 18
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9400
+Number of communities: 19
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9329
+Number of communities: 21
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9258
+Number of communities: 22
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18580
+Number of edges: 650123
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9188
+Number of communities: 23
+Elapsed time: 2 seconds</code></pre>
+<pre class="r"><code>clustree(filtered_seurat_harmony)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-34-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>p1 &lt;- DimPlot(
+  filtered_seurat_harmony,
+  reduction = &quot;umap.harm&quot;,
+  group.by = c(&quot;originalexp_snn_res.0.1&quot;, &quot;originalexp_snn_res.0.2&quot;, &quot;originalexp_snn_res.0.3&quot;, &quot;originalexp_snn_res.0.4&quot;, &quot;originalexp_snn_res.0.5&quot;, &quot;originalexp_snn_res.0.6&quot;),
+  combine = FALSE, label.size = 2
+)
+wrap_plots(p1, ncol = 3, byrow = F)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-35-1.png" width="10800" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>DimPlot(
+  filtered_seurat_harmony,
+  reduction = &quot;umap.harm&quot;,
+  group.by = c(&quot;sample&quot;),
+  combine = FALSE, label.size = 2)</code></pre>
+<pre><code>[[1]]</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-36-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>DimPlot(
+  filtered_seurat_harmony,
+  reduction = &quot;umap.harm&quot;,
+  split.by = c(&quot;sample&quot;),
+  combine = FALSE, label.size = 2)</code></pre>
+<pre><code>[[1]]</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-37-1.png" width="9000" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="set-the-resolution" class="section level2">
+<h2>Set the resolution</h2>
+<pre class="r"><code>#Will set at 0.6 for now and revisit later in case it doesn&#39;t make sense
+filtered_seurat_harmony$seurat_clusters &lt;- filtered_seurat_harmony$originalexp_snn_res.0.5
+filtered_seurat_harmony &lt;- Seurat::SetIdent(filtered_seurat_harmony, value = filtered_seurat_harmony$originalexp_snn_res.0.5)
+table(filtered_seurat_harmony$seurat_clusters)</code></pre>
+<pre><code>
+   0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15 
+2806 2552 2192 1960 1450 1088 1033  881  780  748  724  546  357  333  295  275 
+  16   17   18 
+ 259  169  132 </code></pre>
+<pre class="r"><code>DimPlot(
+  filtered_seurat_harmony,
+  reduction = &quot;umap.harm&quot;,
+  label = T, label.size = 5, repel = T)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-39-1.png" width="4200" style="display: block; margin: auto;" />
+#### Rejoin Layers</p>
+<pre class="r"><code>filtered_seurat_harmony &lt;- JoinLayers(filtered_seurat_harmony)</code></pre>
+</div>
+<div
+id="annotation-httpswww.nature.comarticless41467-021-24110-yfigures1"
+class="section level2">
+<h2>Annotation (<a
+href="https://www.nature.com/articles/s41467-021-24110-y/figures/1"
+class="uri">https://www.nature.com/articles/s41467-021-24110-y/figures/1</a>)</h2>
+<div id="markers" class="section level3">
+<h3>Markers</h3>
+<pre class="r"><code>Endo &lt;- c(&quot;SELE&quot;, &quot;PECAM1&quot;,&quot;VWF&quot;)
+Fib &lt;- c(&quot;COL1A1&quot;, &quot;COL1A2&quot;, &quot;COL3A1&quot;)
+SMC &lt;- c(&quot;TAGLN&quot;, &quot;ACTA2&quot;, &quot;TPM2&quot;)
+KRT &lt;- c(&quot;KRT14&quot;, &quot;KRT1&quot;, &quot;KRT10&quot;, &quot;KRT5&quot;)
+IMM &lt;- c(&quot;LYZ&quot;, &quot;HLA-DRA&quot;)
+LYME &lt;- c(&quot;COL21&quot;, &quot;LYVE1&quot;)
+NEU &lt;- c(&quot;NRXN1&quot;)
+SGC &lt;- c(&quot;SCGB1B2P&quot;, &quot;SCGB1D2&quot;)
+Mela &lt;- c(&quot;TYRP1&quot;, &quot;PMEL&quot;)
+Tcell &lt;- c(&quot;CCR7&quot;, &quot;CD8A&quot;, &quot;IL7R&quot;, &quot;CD3E&quot;)</code></pre>
+<div id="endothelial-cells" class="section level4">
+<h4>Endothelial Cells</h4>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = Endo, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Endo, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-42-1.png" width="3000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = Fib, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Fib, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-43-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = SMC, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = SMC, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-44-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = KRT, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = KRT, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-45-1.png" width="4200" style="display: block; margin: auto;" />
+#### Immune Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = IMM, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = IMM, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-46-1.png" width="4800" style="display: block; margin: auto;" />
+#### Lymphatic Endothelial Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = LYME, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = LYME, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-47-1.png" width="3000" style="display: block; margin: auto;" /></p>
+</div>
+<div id="neuronal-cells" class="section level4">
+<h4>Neuronal Cells</h4>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = NEU, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = NEU, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-48-1.png" width="3000" style="display: block; margin: auto;" />
+#### Sweat Gland Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = SGC, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = SGC, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-49-1.png" width="3000" style="display: block; margin: auto;" /></p>
+</div>
+<div id="melanocytes" class="section level4">
+<h4>Melanocytes</h4>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = Mela, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Mela, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-50-1.png" width="6000" style="display: block; margin: auto;" />
+#### T Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = Tcell, pt.size = 0)
+FeaturePlot_scCustom(filtered_seurat_harmony, features = Tcell, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-51-1.png" width="4200" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="what-is-cluster-17" class="section level3">
+<h3>What is cluster 17</h3>
+<pre class="r"><code># Create a vector of colors for all clusters
+# Use &quot;gray&quot; for all clusters except &quot;17&quot;, which will be &quot;red&quot;
+all_clusters &lt;- levels(Idents(filtered_seurat_harmony))
+cluster_colors &lt;- ifelse(all_clusters == &quot;17&quot;, &quot;red&quot;, &quot;gray&quot;)
+
+# Generate the UMAP plot
+DimPlot(filtered_seurat_harmony, 
+        reduction = &quot;umap&quot;, 
+        group.by = &quot;seurat_clusters&quot;, 
+        label = TRUE) +
+  scale_color_manual(values = setNames(cluster_colors, all_clusters)) +
+  ggtitle(&quot;Highlighting Cluster 17&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-52-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Assuming &#39;seurat_object&#39; is your Seurat object
+# Find markers for cluster 17
+cluster_17_markers &lt;- FindMarkers(filtered_seurat_harmony, ident.1 = &quot;17&quot;)
+
+# Check the number of markers
+n_markers_cluster_17 &lt;- nrow(cluster_17_markers)
+print(paste(&quot;Number of markers for cluster 17:&quot;, n_markers_cluster_17))</code></pre>
+<pre><code>[1] &quot;Number of markers for cluster 17: 12999&quot;</code></pre>
+</div>
+<div id="remove-cluster-17" class="section level3">
+<h3>Remove Cluster 17</h3>
+<pre class="r"><code>clusters_to_keep &lt;- c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;, &quot;13&quot;, &quot;14&quot;, &quot;15&quot;, &quot;16&quot;, &quot;18&quot;)
+Idents(filtered_seurat_harmony) &lt;- filtered_seurat_harmony$originalexp_snn_res.0.5
+
+# Subset the Seurat object based on the clusters
+filtered_seurat_harmony &lt;- subset(filtered_seurat_harmony, idents = clusters_to_keep)
+table(Idents(filtered_seurat_harmony))</code></pre>
+<pre><code>
+   0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15 
+2806 2552 2192 1960 1450 1088 1033  881  780  748  724  546  357  333  295  275 
+  16   18 
+ 259  132 </code></pre>
+<pre class="r"><code>DimPlot(filtered_seurat_harmony, reduction = &quot;umap.harm&quot;, label = T, label.size = 5)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-54-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>table(filtered_seurat_harmony$sample)</code></pre>
+<pre><code>
+  HC-01 RES-001 RES-003 RES-004 
+   3869    1375    3212    9955 </code></pre>
+</div>
+</div>
+<div id="reclustering-the-umap-without-cluster-17"
+class="section level2">
+<h2>Reclustering the UMAP without Cluster 17</h2>
+<pre><code> [1] 5.769845 4.110192 4.034877 3.995514 3.889435 3.713406 3.617999 3.548289
+ [9] 3.521548 3.476094 3.455384 3.396733 3.375168 3.340195 3.307009 3.105272
+[17] 3.093830 3.092919 3.063802 3.056635 3.038766 3.002021 2.964834 2.905849
+[25] 2.896587 2.888253 2.868819 2.848334 2.803974 2.766225 2.761081 2.735481
+[33] 2.717120 2.700684 2.698416 2.641731 2.602220 2.599310 2.595588 2.587888
+[41] 2.565924 2.560303 2.534559 2.534535 2.475862 2.448697 2.437372 2.433714
+[49] 2.428038 2.419250</code></pre>
+<div id="find-variable-features-1" class="section level3">
+<h3>Find Variable Features</h3>
+<pre><code>              mean    variance variance.expected variance.standardized
+KRT10   2.14741187  627.783157        15.3916269              38.51029
+KRT1    0.93623377  147.393870         3.6486038              36.89782
+CCL21   0.78914779  111.563252         2.7393419              32.19302
+DMKN    0.63266525   58.209164         1.9155804              29.11037
+SCGB2A2 2.05192548  772.765690        14.2424993              28.97613
+KRTDAP  0.38493292   36.189950         0.9219044              27.98798
+MUCL1   1.66286459  828.745812         9.9226738              26.13311
+KRT17   0.40128184   35.273185         0.9780743              23.56662
+DCD     3.24860138 6951.670025        30.8930108              22.52308
+NRXN1   0.44348487   26.023897         1.1262578              21.40934
+MPZ     0.09711585    4.478672         0.1548517              18.31633
+IGLC2   0.30546956  139.180448         0.6657519              17.78864
+PIP     0.12807561   12.800217         0.2135477              17.77964
+COCH    2.12606594  267.623161        15.1318148              17.68612
+KRT15   0.60789745   34.364607         1.7996709              17.44353
+IL1B    1.04182282   75.237686         4.3846790              17.15922
+DES     0.22231275    7.472519         0.4329890              16.51356
+KRT14   1.01042855   68.057795         4.1586239              16.36546
+S100A2  0.35294118   21.848918         0.8155599              16.14715
+SCGB1D2 0.25859540   12.614331         0.5291207              16.08038</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-56-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre><code> [1] &quot;IGLC2&quot;   &quot;DCD&quot;     &quot;IGKC&quot;    &quot;HBB&quot;     &quot;IGHA1&quot;   &quot;MUCL1&quot;   &quot;SCGB2A2&quot;
+ [8] &quot;JCHAIN&quot;  &quot;APOD&quot;    &quot;KRT10&quot;  </code></pre>
+<pre class="r"><code>#Scale data
+skin_final &lt;- ScaleData(skin_final, vars.to.regress = &quot;percent.mt&quot;)
+
+#PCA
+skin_final &lt;- RunPCA(skin_final, npcs = 50, verbose = FALSE)
+
+#Elbow Plot
+ElbowPlot(skin_final, ndims=50)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-57-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Choose 35 PCs</code></pre>
+<pre class="r"><code>skin_final &lt;- FindNeighbors(skin_final, reduction = &quot;pca&quot;, dims = 1:30)
+resolution.range &lt;- seq(from = 0, to = 0.8, by = 0.1)
+skin_final &lt;- FindClusters(object = skin_final, resolution = resolution.range)</code></pre>
+<pre><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 1.0000
+Number of communities: 1
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9817
+Number of communities: 12
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9685
+Number of communities: 16
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9586
+Number of communities: 18
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9503
+Number of communities: 20
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9431
+Number of communities: 23
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9370
+Number of communities: 26
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9316
+Number of communities: 27
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 609486
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9261
+Number of communities: 27
+Elapsed time: 2 seconds</code></pre>
+<pre class="r"><code>#Clustree
+clustree(skin_final)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-59-1.png" width="4800" style="display: block; margin: auto;" /></p>
+</div>
+<div id="dimplot-resolutions-1" class="section level3">
+<h3>Dimplot / Resolutions</h3>
+<pre class="r"><code>DimPlot(skin_final, reduction = &quot;umap&quot;, shuffle = T,
+        group.by = c(&quot;originalexp_snn_res.0.2&quot;, &quot;originalexp_snn_res.0.3&quot;, &quot;originalexp_snn_res.0.4&quot;, &quot;originalexp_snn_res.0.5&quot;), ncol = 2)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-60-1.png" width="7200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="dimplot-sample-1" class="section level3">
+<h3>Dimplot / Sample</h3>
+<pre class="r"><code>DimPlot(skin_final, reduction = &quot;umap&quot;, shuffle = T,
+        group.by = c(&quot;sample&quot;))</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-61-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Clearly needs to be re-integrated </code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-63-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 1.0000
+Number of communities: 1
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9821
+Number of communities: 11
+Elapsed time: 3 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9679
+Number of communities: 13
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9577
+Number of communities: 16
+Elapsed time: 3 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9482
+Number of communities: 18
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9403
+Number of communities: 20
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9331
+Number of communities: 20
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9261
+Number of communities: 23
+Elapsed time: 2 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 18411
+Number of edges: 650724
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9195
+Number of communities: 23
+Elapsed time: 2 seconds</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-63-2.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>skin_harmony &lt;- RunUMAP(skin_harmony, reduction = &quot;harmony&quot;, dims = 1:30, reduction.name = &quot;umap.harm&quot;)
+#Rejoin layers
+skin_harmony &lt;- JoinLayers(skin_harmony)</code></pre>
+<div id="look-at-the-resolution-umap-per-sample-feature-plots"
+class="section level4">
+<h4>Look at the resolution, UMAP per sample &amp; feature plots</h4>
+<pre class="r"><code>DimPlot(skin_harmony, group.by = c(&quot;originalexp_snn_res.0.3&quot;, &quot;originalexp_snn_res.0.4&quot;, &quot;originalexp_snn_res.0.5&quot;, &quot;originalexp_snn_res.0.6&quot;), reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-65-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>DimPlot(skin_harmony, split.by = &quot;sample&quot;, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-66-1.png" width="9000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>FeaturePlot_scCustom(skin_harmony, reduction = &quot;umap.harm&quot;, features = c(&quot;percent.mt&quot;, &quot;percent.rp&quot;, &quot;percent.hb&quot;))</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-67-1.png" width="6000" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="set-resolution" class="section level3">
+<h3>Set Resolution</h3>
+<pre class="r"><code>DimPlot(skin_harmony, reduction = &quot;umap.harm&quot;, label = T)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-68-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Will set at 0.4 for now and revisit later in case it doesn&#39;t make sense
+skin_harmony$seurat_clusters &lt;- skin_harmony$originalexp_snn_res.0.4
+skin_harmony &lt;- Seurat::SetIdent(skin_harmony, value = skin_harmony$originalexp_snn_res.0.4)
+table(skin_harmony$seurat_clusters)</code></pre>
+<pre><code>
+   0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15 
+2974 2557 2152 1979 1455 1235 1130  957  755  750  551  356  334  324  297  275 
+  16   17 
+ 258   72 </code></pre>
+</div>
+</div>
+<div
+id="re-annotation-httpswww.nature.comarticless41467-021-24110-yfigures1"
+class="section level2">
+<h2>Re-Annotation (<a
+href="https://www.nature.com/articles/s41467-021-24110-y/figures/1"
+class="uri">https://www.nature.com/articles/s41467-021-24110-y/figures/1</a>)</h2>
+<div id="markers-1" class="section level3">
+<h3>Markers</h3>
+<pre class="r"><code>Endo &lt;- c(&quot;SELE&quot;, &quot;PECAM1&quot;,&quot;VWF&quot;)
+Fib &lt;- c(&quot;COL1A1&quot;, &quot;COL1A2&quot;, &quot;COL3A1&quot;)
+SMC &lt;- c(&quot;TAGLN&quot;, &quot;ACTA2&quot;, &quot;TPM2&quot;)
+KRT &lt;- c(&quot;KRT14&quot;, &quot;KRT1&quot;, &quot;KRT10&quot;, &quot;KRT5&quot;)
+IMM &lt;- c(&quot;LYZ&quot;, &quot;HLA-DRA&quot;)
+LYME &lt;- c(&quot;COL21&quot;, &quot;LYVE1&quot;)
+NEU &lt;- c(&quot;NRXN1&quot;)
+SGC &lt;- c(&quot;SCGB1B2P&quot;, &quot;SCGB1D2&quot;)
+Mela &lt;- c(&quot;TYRP1&quot;, &quot;PMEL&quot;)
+Tcell &lt;- c(&quot;CCR7&quot;, &quot;CD8A&quot;, &quot;IL7R&quot;, &quot;CD3E&quot;)</code></pre>
+<div id="endothelial-cells-1" class="section level4">
+<h4>Endothelial Cells</h4>
+<pre class="r"><code>#VlnPlot_scCustom(filtered_seurat_harmony, features = Endo, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Endo, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-71-1.png" width="3000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = Fib, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Fib, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-72-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = SMC, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = SMC, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-73-1.png" width="6000" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = KRT, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = KRT, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-74-1.png" width="4200" style="display: block; margin: auto;" />
+#### Immune Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = IMM, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = IMM, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-75-1.png" width="4800" style="display: block; margin: auto;" />
+#### Lymphatic Endothelial Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = LYME, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = LYME, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-76-1.png" width="3000" style="display: block; margin: auto;" /></p>
+</div>
+<div id="neuronal-cells-1" class="section level4">
+<h4>Neuronal Cells</h4>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = NEU, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = NEU, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-77-1.png" width="3000" style="display: block; margin: auto;" />
+#### Sweat Gland Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = SGC, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = SGC, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-78-1.png" width="3000" style="display: block; margin: auto;" /></p>
+</div>
+<div id="melanocytes-1" class="section level4">
+<h4>Melanocytes</h4>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = Mela, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Mela, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-79-1.png" width="6000" style="display: block; margin: auto;" />
+#### T Cells</p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = Tcell, pt.size = 0)
+FeaturePlot_scCustom(skin_harmony, features = Tcell, reduction = &quot;umap.harm&quot;)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-80-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#VlnPlot_scCustom(skin_harmony, features = Tcell, pt.size = 0)
+cluster4_markers &lt;- FindMarkers(skin_harmony, ident.1 = &quot;14&quot;)
+head(cluster4_markers)</code></pre>
+<pre><code>       p_val avg_log2FC pct.1 pct.2 p_val_adj
+CDH19      0   7.912593 0.966 0.021         0
+SORCS1     0   6.456907 0.909 0.042         0
+NRXN1      0   9.676137 0.855 0.021         0
+GPM6B      0   4.720612 0.855 0.123         0
+CADM2      0   5.062825 0.795 0.066         0
+NRXN3      0   6.618807 0.764 0.040         0</code></pre>
+</div>
+</div>
+<div id="annotating-the-final-umap" class="section level3">
+<h3>Annotating the final UMAP</h3>
+<pre class="r"><code>#new.cluster.ids &lt;- c(&quot;T-Cells&quot;, &quot;Fibroblasts&quot;, &quot;Endothelial Cells&quot;, &quot;Smooth Muscle Cells&quot;, &quot;Immune Cells&quot;, &quot;Endothelial Cells&quot;,
+#                     &quot;Smooth Muscle Cells&quot;,&quot;Fibroblasts&quot;, &quot;Keratinocytes&quot;, &quot;Fibroblasts&quot;, &quot;T-Cells&quot;, &quot;Sweat Gland Cells&quot;, &quot;Lymphatic Endothelial #Cells&quot;,
+#                     &quot;Neuronal Cells&quot;,&quot;Fibroblasts&quot;, &quot;Smooth Muscle Cells&quot;, &quot;Melanocytes&quot;)
+
+#length(new.cluster.ids)
+#length(levels(skin_harmony$seurat_clusters))</code></pre>
+<pre class="r"><code>#names(new.cluster.ids) &lt;- levels(skin_harmony$seurat_clusters)
+#skin_harmony &lt;- RenameIdents(skin_harmony, new.cluster.ids)
+
+DimPlot(skin_harmony, reduction = &quot;umap.harm&quot;, label = TRUE, pt.size = 0.2, repel = T, label.size = 4)</code></pre>
+<p><img src="figure/QC.Rmd/unnamed-chunk-83-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>skin_final &lt;- saveRDS(skin_harmony, 
+              here::here(output_dir_data, &quot;skin_final.RDS&quot;))</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.1 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
+LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] clustree_0.5.1              ggraph_2.2.1               
+ [3] harmony_1.2.0               Rcpp_1.0.13                
+ [5] scCustomize_2.1.2           here_1.0.1                 
+ [7] RColorBrewer_1.1-3          SeuratData_0.2.2.9001      
+ [9] lubridate_1.9.3             forcats_1.0.0              
+[11] stringr_1.5.1               purrr_1.0.2                
+[13] tidyr_1.3.1                 tibble_3.2.1               
+[15] tidyverse_2.0.0             EnhancedVolcano_1.22.0     
+[17] ggrepel_0.9.5               Matrix_1.7-1               
+[19] scuttle_1.13.1              cowplot_1.1.3              
+[21] patchwork_1.2.0             scDblFinder_1.18.0         
+[23] SingleCellExperiment_1.26.0 SummarizedExperiment_1.34.0
+[25] Biobase_2.64.0              GenomicRanges_1.56.1       
+[27] GenomeInfoDb_1.40.1         IRanges_2.38.0             
+[29] S4Vectors_0.42.0            BiocGenerics_0.50.0        
+[31] MatrixGenerics_1.16.0       matrixStats_1.3.0          
+[33] edgeR_4.2.0                 sctransform_0.4.1          
+[35] limma_3.62.2                BiocManager_1.30.25        
+[37] hdf5r_1.3.11                Seurat_5.1.0               
+[39] SeuratObject_5.0.2          sp_2.1-4                   
+[41] ggplot2_3.5.1               dplyr_1.1.4                
+[43] readr_2.1.5                 workflowr_1.7.1            
+
+loaded via a namespace (and not attached):
+  [1] fs_1.6.5                  spatstat.sparse_3.1-0    
+  [3] bitops_1.0-7              httr_1.4.7               
+  [5] backports_1.5.0           tools_4.4.2              
+  [7] utf8_1.2.4                R6_2.5.1                 
+  [9] mgcv_1.9-1                lazyeval_0.2.2           
+ [11] uwot_0.2.2                withr_3.0.2              
+ [13] gridExtra_2.3             progressr_0.14.0         
+ [15] cli_3.6.3                 spatstat.explore_3.3-3   
+ [17] fastDummies_1.7.3         labeling_0.4.3           
+ [19] sass_0.4.9                spatstat.data_3.1-2      
+ [21] ggridges_0.5.6            pbapply_1.7-2            
+ [23] Rsamtools_2.20.0          R.utils_2.12.3           
+ [25] scater_1.32.0             parallelly_1.37.1        
+ [27] rstudioapi_0.17.1         shape_1.4.6.1            
+ [29] generics_0.1.3            BiocIO_1.14.0            
+ [31] ica_1.0-3                 spatstat.random_3.3-2    
+ [33] ggbeeswarm_0.7.2          fansi_1.0.6              
+ [35] abind_1.4-8               R.methodsS3_1.8.2        
+ [37] lifecycle_1.0.4           whisker_0.4.1            
+ [39] yaml_2.3.10               snakecase_0.11.1         
+ [41] SparseArray_1.4.8         Rtsne_0.17               
+ [43] paletteer_1.6.0           grid_4.4.2               
+ [45] promises_1.3.0            dqrng_0.4.1              
+ [47] crayon_1.5.3              miniUI_0.1.1.1           
+ [49] lattice_0.22-6            beachmat_2.18.1          
+ [51] pillar_1.9.0              knitr_1.48               
+ [53] metapod_1.12.0            rjson_0.2.21             
+ [55] xgboost_1.7.7.1           future.apply_1.11.2      
+ [57] codetools_0.2-20          leiden_0.4.3.1           
+ [59] glue_1.8.0                getPass_0.2-4            
+ [61] spatstat.univar_3.0-0     data.table_1.16.2        
+ [63] vctrs_0.6.5               png_0.1-8                
+ [65] spam_2.10-0               gtable_0.3.6             
+ [67] rematch2_2.1.2            cachem_1.1.0             
+ [69] xfun_0.48                 S4Arrays_1.4.1           
+ [71] mime_0.12                 tidygraph_1.3.1          
+ [73] survival_3.7-0            statmod_1.5.0            
+ [75] bluster_1.14.0            fitdistrplus_1.1-11      
+ [77] ROCR_1.0-11               nlme_3.1-166             
+ [79] bit64_4.5.2               RcppAnnoy_0.0.22         
+ [81] rprojroot_2.0.4           bslib_0.8.0              
+ [83] irlba_2.3.5.1             vipor_0.4.7              
+ [85] KernSmooth_2.23-24        colorspace_2.1-1         
+ [87] ggrastr_1.0.2             tidyselect_1.2.1         
+ [89] processx_3.8.4            bit_4.5.0                
+ [91] compiler_4.4.2            curl_5.2.3               
+ [93] git2r_0.35.0              BiocNeighbors_1.22.0     
+ [95] DelayedArray_0.30.1       plotly_4.10.4            
+ [97] rtracklayer_1.64.0        checkmate_2.3.1          
+ [99] scales_1.3.0              lmtest_0.9-40            
+[101] callr_3.7.6               rappdirs_0.3.3           
+[103] digest_0.6.37             goftest_1.2-3            
+[105] presto_1.0.0              spatstat.utils_3.1-0     
+[107] rmarkdown_2.28            RhpcBLASctl_0.23-42      
+[109] XVector_0.44.0            htmltools_0.5.8.1        
+[111] pkgconfig_2.0.3           sparseMatrixStats_1.16.0 
+[113] highr_0.11                fastmap_1.2.0            
+[115] GlobalOptions_0.1.2       rlang_1.1.4              
+[117] htmlwidgets_1.6.4         UCSC.utils_1.0.0         
+[119] shiny_1.9.1               DelayedMatrixStats_1.26.0
+[121] farver_2.1.2              jquerylib_0.1.4          
+[123] zoo_1.8-12                jsonlite_1.8.9           
+[125] BiocParallel_1.38.0       R.oo_1.26.0              
+[127] BiocSingular_1.20.0       RCurl_1.98-1.14          
+[129] magrittr_2.0.3            GenomeInfoDbData_1.2.12  
+[131] dotCall64_1.1-1           munsell_0.5.1            
+[133] viridis_0.6.5             reticulate_1.38.0        
+[135] stringi_1.8.4             zlibbioc_1.50.0          
+[137] MASS_7.3-61               plyr_1.8.9               
+[139] parallel_4.4.2            listenv_0.9.1            
+[141] deldir_2.0-4              graphlayouts_1.1.1       
+[143] Biostrings_2.72.1         splines_4.4.2            
+[145] tensor_1.5                circlize_0.4.16          
+[147] hms_1.1.3                 locfit_1.5-9.9           
+[149] ps_1.8.1                  igraph_2.1.1             
+[151] spatstat.geom_3.3-3       RcppHNSW_0.6.0           
+[153] reshape2_1.4.4            ScaledMatrix_1.12.0      
+[155] XML_3.99-0.17             evaluate_1.0.1           
+[157] scran_1.32.0              ggprism_1.0.5            
+[159] tweenr_2.0.3              tzdb_0.4.0               
+[161] httpuv_1.6.15             RANN_2.6.1               
+[163] polyclip_1.10-7           future_1.33.2            
+[165] scattermore_1.2           ggforce_0.4.2            
+[167] janitor_2.2.0             rsvd_1.0.5               
+[169] xtable_1.8-4              restfulr_0.0.15          
+[171] RSpectra_0.16-1           later_1.3.2              
+[173] viridisLite_0.4.2         memoise_2.0.1            
+[175] beeswarm_0.4.0            GenomicAlignments_1.40.0 
+[177] cluster_2.1.6             timechange_0.3.0         
+[179] globals_0.16.3           </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
